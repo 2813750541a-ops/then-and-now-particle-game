@@ -6,6 +6,9 @@
 
 打开 GitHub Pages 地址，点击“走进记忆”。推荐电脑、耳机、全屏；按照画面提示点击、按住或拖动。进度仅保存在各自浏览器里。
 
+- [《从前与此刻》：理解父辈](https://2813750541a-ops.github.io/then-and-now-particle-game/)
+- [《出生在这里》：从2003到2040](https://2813750541a-ops.github.io/then-and-now-particle-game/after-birth/) — 从普通家庭的孩子出生开始，三条成长路线、收集/拼图/配送小游戏、三种未来情景与六种累积结局。未来为假设推演，不是确定预测。
+
 ## 发布
 
 GitHub Pages：Deploy from a branch → main → / (root)。根目录已有 `.nojekyll`，无需构建。所有游戏资源使用相对路径，可部署在仓库子目录。
