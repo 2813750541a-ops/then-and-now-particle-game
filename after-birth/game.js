@@ -67,6 +67,71 @@ function hot(actor,label,id,fn,dy=0){let b=document.createElement('button');b.te
 function hideHot(){hotspots.forEach(h=>h.b.style.display='none');}
 function save(){st.chapter=chapter;try{localStorage.setItem(STORAGE,JSON.stringify(st));}catch{}}
 
+// A deterministic fictional continuation, assembled from the player's actual decisions.
+// No network, personal profile, real-world probabilities or financial projections.
+function buildEpilogue(s){
+  const has=id=>(s.history||[]).some(h=>h.id===id);
+  const route={degree:'本科起步',trade:'从手艺起步',early:'早早进入工作'}[s.route]||'普通的起点';
+  const world={opening:'技术打开新岗位',squeeze:'机会分配不均',care:'照护支持扩大'}[s.world]||'仍有变化的未来';
+  const end={spent:'灯还亮着',tethered:'被承诺牵着走',turn:'还可以转身',shared:'有人接得住',steady:'一小块安稳',unfinished:'人生仍在途中'}[s.ending]||'人生仍在途中';
+  const child=s.family!=='later'&&!!s.family;
+  const reflection=s.reflection||(has('reflection-联系')?'联系':has('reflection-余地')?'余地':has('reflection-选择')?'选择':null);
+  const job={degree:'项目与办公室工作',trade:'维修和技术服务',early:'配送与现场工作'}[s.route]||'手头的工作';
+  const skillWork={degree:'负责核查自动生成的材料，跟客户把问题说清楚',trade:'把现场维修和新的设备诊断工具接在一起',early:'逐渐接手异常件处理与线路协调'}[s.route];
+  let career=[];
+  if(s.world==='opening')career.push('2041年，你所在的行业又换了一轮工具。一批重复任务被重新分配，新的岗位也开始出现。原来的工作经验能留下多少，要看它能不能接上新的要求。');
+  else if(s.world==='squeeze')career.push('2041年，你熟悉的行业经历了一段需求波动。一个合作项目暂停，有几个月的安排被打乱。你第一次发现，把下个月排满，并不等于下个月就有着落。');
+  else career.push('2041年，你所在的地方继续扩大培训与照护支持。服务需要预约，岗位仍然要争取，但你终于能把一些原本独自完成的事交出去，腾出固定的时间。');
+  if(has('future-adapt'))career.push(s.skill>=7?`你从${job}出发，后来${skillWork}。转岗的前几个月并不轻松，过去学过的东西让你没有完全从零开始。`:`你尝试新的任务：${skillWork}。第一次尝试没能立即换来稳定收入，你一边做熟悉的活，一边把欠下的练习补回来。`);
+  else if(has('future-network'))career.push(`培训里认识的两个人，后来和你一起接过一个小项目。你仍然做${job}，遇到不懂的事却能问到人。合作没有每次都成功，它让你多了一条找工作的线索。`);
+  else career.push(`你继续把${job}做好。老客户和熟悉的流程给你留下一部分收入。需求变化时，你也开始补学工具，避免把整段生活押在一种做法上。`);
+  if(has('work-learn')||has('early-learn')||has('trade-upskill')||has('degree-practice'))career.push('你想起年轻时给学习留下的那些晚上。那时少接的一些活，后来成了转向时用得上的准备。');
+  else if(has('work-extra')||has('early-more')||has('trade-shifts'))career.push('年轻时多接的活替你攒过钱，也让你累过。四十岁前后，你开始把恢复的时间算进下一份工作的代价。');
+
+  let family=[];
+  if(child){
+    family.push('2046年，孩子十八岁了。他开始为自己的下一步做打算，有一次提出的想法，和你熟悉的路很不一样。你听见自己差点脱口而出的“你要稳定一点”，突然想起当年那通电话。');
+    if(has('call-boundary'))family.push('你先把担心说出来，再让他把计划讲完。你们仍然有分歧，但你努力把建议和替他决定分开。你慢慢学会了把曾经希望父母给你的空间，留给下一代。');
+    else if(has('call-obey'))family.push('你一开始把自己的安排讲得很满。争执过后，你想起自己当年答应父母时留下的压力。后来的一顿晚饭，你重新问他：你自己想怎么走？这一次，你试着先听。');
+    else family.push('谈不下去时，你先停了一晚。第二天，你没有继续追问答案，而是问他需不需要一起查些资料。亲近和边界，你也还在学习。');
+  }else{
+    family.push('2046年，你们仍然没有把生孩子设成必须完成的一项任务。朋友的生活渐渐分成不同节奏：有人忙着接送，有人搬去远方。你们也要重新安排自己的陪伴和联系。');
+    family.push(s.support>=6?'你保留了几段能说实话的关系。一个普通的周末，你们约朋友做饭，各自讲了讲最近的难处。生活里有了工作以外的声音。':'忙碌时，你们有一阵子只谈待办。后来，你开始恢复一个小小的约定：每周一起吃一顿不看工作消息的饭。关系也需要被安排进生活。');
+  }
+  if(s.family==='shared'||has('night-support'))family.push('当年谈好的换班和分工也改过很多次。有人临时忙起来，另一个人会累；你们逐渐学会重新商量，而不是把一方的付出当成默认。');
+  else if(child&&has('night-alone'))family.push('你曾把很多夜晚都扛下来。后来一次争吵，让彼此终于看见了那份疲惫。分工没有一下变公平，但你开始把“我也需要休息”说完整。');
+  else if(has('night-paid'))family.push('你曾用储备换过一些照护或休整。后来，这笔开支仍需要权衡；你已经知道，恢复也值得被认真安排。');
+
+  let later=[];
+  later.push('2050年，你四十七岁，父母七十五岁。一次复诊、一份需要看清的小字说明，让你感觉到：他们从前替你安排的事，如今越来越多地需要你来协调。');
+  if(has('care-share'))later.push(s.world==='care'?'你沿用以前的排班，也预约了当地能用的服务。等候和沟通仍然花时间，几个人共同照护，让你还能维持自己的工作。':'你把亲人、伴侣和可用的服务重新排在同一张日程上。支持并不总够用，但有人能替一段班，已经让这一周有所不同。');
+  else if(has('care-finance'))later.push('当年借钱安排照护，解决过眼前的困难。后来偿还仍占据一部分开支，你开始同时谈费用怎么分、照护怎么接，减少靠下一笔借款来维持安排。');
+  else later.push('亲自陪伴留下了很多只有你知道的细节，也占去了收入和睡眠。后来有一次工作撞上复诊，你终于开始提前找人换班，给照护留一个备用安排。');
+  if(s.housing==='large')later.push('更大的住房承诺，让一些换城市和减少工作的打算推迟了。你开始检查固定支出，能调整的就调整；安顿一家人，也包括保留喘息的余地。');
+  else later.push('年轻时住得小一些，少背的承诺给你留下了一点灵活。通勤和拥挤仍有代价，不过遇到变化时，你还有重新安排住处和工作的空间。');
+  if(s.reserve-s.debt*.7<=0)later.push('那几年最难的，还是临时开支一来，原来的计划就得让路。你把先修复缓冲放在了很多大计划前面，进展很慢，但开始有了次序。');
+
+  const daily={
+    spent:['2055年，你五十二岁。你没有从疲惫里突然翻身。有一阵子，你减少接活，恢复作息，也开始承认自己需要帮忙。日子收得小一些，身体才慢慢能跟上。','一个傍晚，你按时关掉工作消息，坐下来把饭吃完。外面的事还没解决完。这个晚上，你终于没有把自己也当成一件必须赶完的任务。'],
+    tethered:['2055年，你五十二岁。固定开支仍然影响选择。有几次远行被推迟，你把生活重新排成一个承受得住的规模，先处理能谈、能减、能换的那一部分。','你记住的不是一个突然变好的年份，而是第一次不再为每一件事加码的那天。生活的余地，是从几个有上限的承诺里慢慢长出来的。'],
+    turn:['2055年，你五十二岁。你换过岗位，也有过几段收入不那么稳定的日子。技能、认识的人和当年留下的余地，让你几次重新找到入口。','你仍然要为明天做打算，不过看到新的要求时，不再只剩下害怕。晚饭后，你翻开一点资料，也能在累的时候把它合上。'],
+    shared:['2055年，你五十二岁。你仍然过着普通的日子。照护、工作和家务有时会重新挤在一起，你习惯先问：这一次，谁能接哪一段？','有一天，你晚到了一会儿，家里有人给你留着饭。你突然发现，那些早年很难开口的请求，后来变成了一种互相接住的习惯。'],
+    steady:['2055年，你五十二岁。你没有把每次机会都抓住，也没有把每项承诺都背上。留出的缓冲替你挡过几次波动，生活里逐渐有了可以自己安排的一小段时间。','一个普通的休息日，你出门买菜，绕路走了一会儿。手机没有催你马上回去。那一点点不赶路的时间，就是这些年守住的东西。'],
+    unfinished:['2055年，你五十二岁。你的人生仍有一些没完成的打算。工作调整过，计划延期过，你开始把很远的大问题拆成这一周能动的一件事。','有些日子还会迷茫。有些日子，你能做完饭、回一通电话、把一个小安排落下来。没有最终的交卷，你也一直在生活。']
+  }[s.ending]||['2055年，你五十二岁。日子仍在往前。','你还可以重新安排下一天。'];
+  const ending=[...daily];
+  if(reflection==='余地')ending.push('通关时，你说想留一点余地。后来，你把它写进了日常：不把时间全排满，也不把所有储备都交给一个计划。');
+  else if(reflection==='联系')ending.push('通关时，你说想留一个能开口的人。后来，你开始在事情还没撑到极限时打电话，也认真接住别人向你开的口。');
+  else if(reflection==='选择')ending.push('通关时，你说想留一个自己的选择。后来，你会听取家人的意见，也尽量把决定讲清楚、把代价看清楚，再自己走下去。');
+  else ending.push('你还可以决定，接下来的生活先给什么留一点空间。');
+  const causes=[];
+  const add=(id,label)=>{const h=(s.history||[]).find(h=>h.id===id);if(h)causes.push({year:h.year,label});};
+  [['university','选择读本科'],['vocational','选择学手艺'],['early-work','选择先工作'],['degree-practice','接一个实际项目'],['degree-exam','再准备一年考试'],['trade-upskill','跟师傅再学一层'],['trade-shifts','先接满这个月的活'],['early-learn','留半晚学别的技能'],['early-more','趁还能跑，多跑一些'],['work-learn','为学习留出时间'],['work-extra','把空闲也接成工作'],['work-rest','给自己一个休息的晚上'],['small-home','住房留一些余地'],['large-home','背上更大的住房承诺'],['family-share','迎接孩子前谈分工'],['family-rush','先迎接孩子，再慢慢安排'],['family-later','暂时不生，先经营现在'],['night-support','开口分担夜晚的压力'],['night-alone','独自扛住夜晚与工作'],['night-paid','用储备换支持'],['call-boundary','和父母讲清自己的安排'],['call-obey','先答应父母的期待'],['call-distance','先结束话题，改天再谈'],['future-adapt','转进新的工作任务'],['future-stay','继续做好熟悉的工作'],['future-network','找培训，也找伙伴'],['care-share','协调照护排班与服务'],['care-solo','请假亲自陪伴父母'],['care-finance','借一点钱安排照护'],['wish-buffer','先修复储备和债务'],['wish-health','减少透支，恢复日常'],['wish-choice','为下一次转向留入口']].forEach(([id,label])=>add(id,label));
+  return {version:1,title:'后来的日子',subtitle:'一封来自2055年的生活后记',route,world,ending:end,reflection,
+    note:'沿用你选择的未来情景，由游戏选择续写的虚构故事，不是对真实人生的预测。',
+    pages:[{year:2041,age:38,title:'工作又变了一次',paragraphs:career},{year:2046,age:43,title:child?'你开始懂得另一代人的难':'生活有自己的节奏',paragraphs:family},{year:2050,age:47,title:'慢慢交换的角色',paragraphs:later},{year:2055,age:52,title:'一顿普通的晚饭',paragraphs:ending}],causes};
+}
+
 // Fictional resource units. They are not income figures, risk probabilities or forecasts.
 const metrics=['reserve','debt','skill','energy','support','autonomy','meaning'];
 const routeNames={degree:'本科',trade:'学一门手艺',early:'早早工作'};
@@ -442,12 +507,20 @@ function ending(){
   ready(V(0,2.5,17),V(0,1,-3),()=>{
     say(end.line);$('reflection').hidden=false;$('reflection').replaceChildren();
     const reason=document.createElement('span');reason.textContent=end.reason;$('reflection').appendChild(reason);
-    after(4,()=>choices([
-      ['想一想，再往前',()=>reflection(end)],
-      ['同一个我，另一种未来',()=>{st=copy(st.checkpoint);st.checkpoint=null;next(11);}],
-      ['从出生重新走一次',()=>{st=fresh();next(0);}]
-    ]));
+    after(4,()=>{endChoices();if(st.completed)openEpilogue();});
   },4.5);
+}
+function endChoices(){
+  if(st.completed){choices([
+    ['读我的生活后记',openEpilogue],
+    ['试走另一种未来',()=>{st=copy(st.checkpoint);st.checkpoint=null;next(11);}],
+    ['从出生重来',()=>{st=fresh();next(0);}],['音乐与时代资料',showSources]
+  ]);return;}
+  choices([
+    ['想一想，再往前',()=>reflection(endingFor(st))],
+    ['同一个我，另一种未来',()=>{st=copy(st.checkpoint);st.checkpoint=null;next(11);}],
+    ['从出生重新走一次',()=>{st=fresh();next(0);}],['看后来的日子',openEpilogue]
+  ]);
 }
 function reflection(end){
   hideHot();choices([]);$('reflection').hidden=true;world.children.filter(p=>p.userData.text).forEach(p=>dissolve(p));
@@ -457,8 +530,8 @@ function reflection(end){
   ]);});
 }
 function closeStory(word){
-  choices([]);record('reflection-'+word,{});memoryWord(word,0,2,-3,5,BLUE);say('这一件事，可以从今天开始。');hint('');
-  after(3,()=>choices([['试走另一种未来',()=>{st=copy(st.checkpoint);st.checkpoint=null;next(11);}],['从出生重来',()=>{st=fresh();next(0);}],['音乐与时代资料',showSources]]));
+  choices([]);record('reflection-'+word,{});st.reflection=word;st.completed=true;save();memoryWord(word,0,2,-3,5,BLUE);say('这一件事，可以从今天开始。');hint('');
+  after(3,()=>{endChoices();openEpilogue();});
 }
 const chapters=[
   {year:()=>2003,name:'出生',build:birth,score:0,at:25},
@@ -540,6 +613,60 @@ function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=i
 function loop(now){requestAnimationFrame(loop);let dt=last?Math.min((now-last)/1000,.3):0;last=now;if(paused)return;dt*=playbackRate;time+=dt;if(cam){let c=cam,k=clamp((time-c.start)/c.dur),e=cameraEase(k);camera.position.lerpVectors(c.a,c.b,e);camera.position.y+=Math.sin(k*Math.PI)*.12;look.lerpVectors(c.c,c.d,e);if(k>=1){cam=null;if(c.done)c.done();}}camera.lookAt(look);let previous=anim;anim=[];previous.forEach(a=>{if(!a.tick(time))anim.push(a);});ambient.rotation.y=time*.001;actors.forEach(p=>{p.material.uniforms.uTime.value=time;p.material.uniforms.uOpacity.value=p.userData.alpha;p.material.uniforms.uScatter.value=p.userData.scatter;});scene.updateMatrixWorld();hotspots.forEach(h=>{let p=h.actor.position.clone();p.y+=h.dy;p.project(camera);h.b.style.left=clamp((p.x*.5+.5)*innerWidth,innerWidth*.12,innerWidth*.88)+'px';h.b.style.top=clamp((-p.y*.5+.5)*innerHeight,innerHeight*.28,innerHeight*.72)+'px';h.b.style.visibility=p.z<0||p.z>1?'hidden':'visible';});renderer.render(scene,camera);}
 const ray=new THREE.Raycaster();ray.params.Points.threshold=.3;let pointer=new THREE.Vector2();$('world').onpointerdown=e=>{if(paused||busy||cam||mode==='intro')return;drag={x:e.clientX,y:e.clientY,moved:false};$('world').setPointerCapture(e.pointerId);};$('world').onpointermove=e=>{if(!drag||cam)return;let dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3){drag.moved=true;look.x-=dx*.008;look.y=clamp(look.y+dy*.004,-.3,3.2);drag.x=e.clientX;drag.y=e.clientY;}};$('world').onpointerup=e=>{if(drag&&!drag.moved&&!cam&&!busy){pointer.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(pointer,camera);let hits=ray.intersectObjects(hotspots.filter(h=>h.b.style.display!=='none'&&h.b.style.visibility!=='hidden').map(h=>h.actor),false);if(hits.length){let h=hotspots.find(h=>h.actor===hits[0].object&&h.b.style.display!=='none'&&h.b.style.visibility!=='hidden');if(h&&h.b.dataset.gesture!=='drag'&&h.b.dataset.gesture!=='hold')h.fn();}}drag=null;};
 
+let epilogueView=null;
+const htmlEscape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function epilogueHTML(report){
+  const chapters=report.pages.map(p=>`<section><div class="year">${p.year} · ${p.age}岁</div><h2>${htmlEscape(p.title)}</h2>${p.paragraphs.map(t=>'<p>'+htmlEscape(t)+'</p>').join('')}</section>`).join('');
+  const causes=report.causes.map(c=>`<li><span>${c.year}</span> ${htmlEscape(c.label)}</li>`).join('');
+  return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>出生在这里 · ${htmlEscape(report.title)}</title><style>
+  *{box-sizing:border-box}body{margin:0;background:#101415;color:#e8dfcc;font:17px/2 'Songti SC','Noto Serif SC',serif}main{max-width:760px;margin:auto;padding:72px 32px 80px}.label,.year{font:12px/1.8 sans-serif;letter-spacing:.12em;color:#c9ac7c}h1{font-weight:400;font-size:48px;letter-spacing:.08em;margin:16px 0}header p{color:#c4b69d;font-size:15px}section{margin:64px 0}h2{font-size:25px;font-weight:400;color:#dfbc84}p{margin:16px 0}.choices{border-top:1px solid #c9ac7c33;padding-top:24px}.choices h2{font-size:20px}.choices ul{padding-left:22px;font:14px/2 sans-serif}.choices li span{color:#9daeb7;margin-right:10px}.note{font:12px/1.8 sans-serif;color:#a8aaa2;margin-top:44px}button{border:1px solid #b9a48177;color:#dcc39a;background:none;padding:10px 18px;cursor:pointer}footer{margin-top:48px;font:13px/1.8 sans-serif}@media(max-width:600px){main{padding:40px 22px}h1{font-size:37px}body{font-size:16px}}@media print{body{background:white;color:#222}main{padding:0}h1,h2,.label,.year{color:#333}section{break-inside:avoid;margin:30px 0}button{display:none}.note{color:#555}}
+  </style><main><header><div class="label">出生在这里 · 通关后记</div><h1>${htmlEscape(report.title)}</h1><p>${htmlEscape(report.subtitle)}</p><p>${htmlEscape(report.route)} · ${htmlEscape(report.world)}<br>2040年的结局：${htmlEscape(report.ending)}</p></header>${chapters}<section class="choices"><h2>这份后记，从这些选择接着往下写</h2><ul>${causes}</ul>${report.reflection?'<p>最后，你想为自己留下：'+htmlEscape(report.reflection)+'。</p>':''}</section><p class="note">${htmlEscape(report.note)}人物生于2003年，父母生于1975年；如果迎接了孩子，故事设定其生于2028年。后记不包含实际工资、财务收益、疾病或寿命预测。没有向外部服务提交游玩记录。</p><footer><button onclick="window.print()">打印 / 存成 PDF</button><p>故事属于这一次旅程。未来仍可以重新选择。</p></footer></main></html>`;
+}
+function downloadEpilogue(){
+  if(!epilogueView)return;const report=epilogueView.report;
+  const blob=new Blob([epilogueHTML(report)],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='出生在这里-'+report.ending+'-生活后记.html';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  $('epilogueNotice').textContent='已保存完整后记。用浏览器打开即可阅读或打印。';
+}
+function renderEpiloguePage(index){
+  if(!epilogueView)return;const r=epilogueView.report;epilogueView.index=clamp(index,0,r.pages.length-1);const p=r.pages[epilogueView.index];
+  $('epilogueYear').textContent=p.year+'年 · '+p.age+'岁';$('epilogueTitle').textContent=p.title;
+  $('epilogueBody').replaceChildren(...p.paragraphs.map(text=>{let node=document.createElement('p');node.textContent=text;return node;}));
+  $('epilogueScroll').scrollTop=0;$('epiloguePrev').disabled=epilogueView.index===0;
+  $('epilogueNext').textContent=epilogueView.index===r.pages.length-1?'回到旅程':'再往后几年';
+  $('epilogueNotice').textContent='';sound('paper');
+}
+function openEpilogue(){
+  if(chapter!==15||busy||cam)return;
+  const report=buildEpilogue(st);st.epilogue=report;save();
+  epilogueView={report,index:0,focus:document.activeElement};
+  $('epilogue').hidden=false;$('epilogueSummary').textContent=report.route+' · '+report.world+' · '+report.ending;
+  document.body.classList.add('reading-epilogue');
+  // The scene keeps breathing; its controls are inert while reading the letter.
+  ['intro','tools','labels','choices','pause'].forEach(id=>$(id).inert=true);
+  renderEpiloguePage(0);$('epilogueNext').focus();
+}
+function closeEpilogue(){
+  if(!epilogueView)return;const focus=epilogueView.focus;epilogueView=null;$('epilogue').hidden=true;
+  document.body.classList.remove('reading-epilogue');
+  ['intro','tools','labels','choices','pause'].forEach(id=>$(id).inert=false);
+  if(focus?.isConnected)focus.focus();else $('pauseButton').focus();
+}
+$('epilogueClose').onclick=closeEpilogue;
+$('epiloguePrev').onclick=()=>renderEpiloguePage(epilogueView.index-1);
+$('epilogueNext').onclick=()=>epilogueView.index===epilogueView.report.pages.length-1?closeEpilogue():renderEpiloguePage(epilogueView.index+1);
+$('epilogueSave').onclick=downloadEpilogue;
+$('epilogue').addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.stopPropagation();closeEpilogue();return;}
+  if(e.key==='ArrowRight'){e.preventDefault();renderEpiloguePage(epilogueView.index+1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();renderEpiloguePage(epilogueView.index-1);}
+  if(e.key==='Tab'){
+    const buttons=[...$('epilogue').querySelectorAll('button')].filter(b=>!b.disabled),first=buttons[0],last=buttons.at(-1);
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
+});
+
 let playbackRate=1;
 $('start').disabled=true;
 $('start').onclick=()=>{initAudio();$('intro').style.display='none';clear();st=fresh();next(0);};
@@ -562,7 +689,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode!=='in
 function audioRMS(){if(!audioMeter)return 0;let a=new Float32Array(audioMeter.fftSize);audioMeter.getFloatTimeDomainData(a);
   let sum=0;for(let x of a)sum+=x*x;return Math.sqrt(sum/a.length);}
 window.Game={
-  getState:()=>({...copy(st),chapter,mode,busy,paused,camMoving:!!cam,mini:copy(mini)}),
+  getState:()=>({...copy(st),chapter,mode,busy,paused,camMoving:!!cam,mini:copy(mini),epilogueOpen:!!epilogueView}),
   getAudioStatus:()=>({current,title:scoreTitles[current],musicTarget,muted,rms:audioRMS(),tracks:tracks.map(a=>({ready:a.readyState,error:a.error?.message||null,paused:a.paused}))}),
   captureStream:()=>{let stream=$('world').captureStream(30);if(recordDest)recordDest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));return stream;},
   renderer,scene,camera
